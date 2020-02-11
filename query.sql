@@ -4,7 +4,8 @@ SELECT
     title,
     COUNT(cout) AS checktimes,
     YEAR(cout) AS years,
-    MONTH(cout) AS months
+    MONTH(cout) AS months,
+    DAY(cout) AS days
 FROM
     spl_2016.outraw
 WHERE
@@ -24,5 +25,5 @@ WHERE
         OR (LOWER(title) LIKE '% sql %')
         OR (LOWER(title) LIKE '%kotlin%')
         OR (LOWER(title) LIKE '%ruby%'))
-GROUP BY deweyClass , title , years , months
-ORDER BY years , months ASC
+GROUP BY deweyClass , title , years , months, days
+ORDER BY years , months, days ASC

@@ -25,16 +25,19 @@ let tableIdx = {
     times: 2,
     year: 3,
     month: 4,
+    day: 5,
     minIdx: function() {
         return 1;
     }, 
     maxIdx: function() {
-        return 4;
+        return 5;
     }
 };
 
 // DatasetMatrix
 let datasetMatrix = [];
+let datasetMatrixDays = [];
+const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const langList = ['Python', 'C/C++', 'Swift', 'C#', 'Javascript', 'Java', 'PHP', 'SQL', 'Kotlin', 'Ruby'];
 const colorList = ['#C68DFF', '#64C1FF', '#FFA024', '#8B6EFF', '#FFF18D', '#FF6F00', '#75FFE4', '#9AFF75', '#6CFFF1', '#E44646']
 const langIdxList = {
@@ -44,7 +47,7 @@ const langIdxList = {
     'csharp': 3, 
     'javascript': 4,
     'java': 5,
-    'pho': 6,
+    'php': 6,
     'sql': 7,
     'kotlin': 8,
     'ruby':9,
@@ -53,8 +56,9 @@ const langIdxList = {
 const monthStrings = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
 const startYear = 2006
 const endYear = 2020
-function getYearIdx(year) {return year >= 2006 && year <= 2020 ? year - 2006 : NaN}
-function getMonthIdx(month) {return month >= 1 && month <= 12 ? month - 1 : NaN}
+function getYearIdx(year) {return year >= 2006 && year <= 2020 ? year - 2006 : NaN;}
+function getMonthIdx(month) {return month >= 1 && month <= 12 ? month - 1 : NaN;}
+function getDayIdx(day) {return day >= 1 && day <= 31 ? day - 1 : NaN;}
 
 let cam;
 let cameraTranslation;
@@ -84,7 +88,7 @@ let endYearSlider;
 function preload() {
     Gotham = loadFont('data/Gotham-Bold.otf');
     DIN = loadFont('data/DIN.otf');
-    dataset = loadTable("data/ProgLangTrend.csv", 'csv', 'header');
+    dataset = loadTable("data/ProgLangTrendWithDates.csv", 'csv', 'header');
     
 }
 
@@ -96,6 +100,8 @@ function setup() {
     cam.perspective(PI / 3.0, width / height, 0.1, 5000);
     cam.move(0, -initialHeight, 0);
     console.log(cam);
+
+
     // Initialize dataset matrix table
     /* This table will be like
     --------------------------
@@ -117,12 +123,54 @@ function setup() {
         for (var mm = 1; mm <= 12; mm++) {
             datasetMatrix[getYearIdx(yy)][getMonthIdx(mm)] = [];
             // Initialize language tables
-            for (var i = 0; i < Object.keys(langIdxList).length; i++) {
+            for (var i = 0; i < Object.keys(langIdxList).length - 1; i++) {
                 datasetMatrix[getYearIdx(yy)][getMonthIdx(mm)][i] = 0;
             }
         }
     }
     print("datasetMatrix has been initialized!");
+    // Initialize dataset matrix with days
+    /* This table will be like
+    --------------------------
+    2006
+        1
+            1
+                python: num
+                c: num
+                ...
+            2
+            ...
+        2
+        3
+        ...
+    2007
+    2008
+    ...
+    -------------------------- */
+    print("Initializing dataset (days) matrix!");
+    for (var yy = startYear; yy <= endYear; yy++) {
+        datasetMatrixDays[getYearIdx(yy)] = [];
+        for (var mm = 1; mm <= 12; mm++) {
+            datasetMatrixDays[getYearIdx(yy)][getMonthIdx(mm)] = [];
+            
+            for (var dd = 0; dd < monthDays[getMonthIdx(mm)]; dd++) {
+                datasetMatrixDays[getYearIdx(yy)][getMonthIdx(mm)][dd] = [];
+                for (var i = 0; i < Object.keys(langIdxList).length - 1; i++) {
+                    datasetMatrixDays[getYearIdx(yy)][getMonthIdx(mm)][dd][i] = 0;
+                }
+            }
+            // Check if Feb has 29 days.
+            if ((yy % 4 == 0) && (mm == 2)) {
+                datasetMatrixDays[getYearIdx(yy)][getMonthIdx(mm)][28] = [];
+                for (var i = 0; i < Object.keys(langIdxList).length - 1; i++) {
+                    datasetMatrixDays[getYearIdx(yy)][getMonthIdx(mm)][dd][i] = 0;
+                }
+            }
+        }
+    }
+    print("Done initializing dataset (days) matrix!");
+    console.log(datasetMatrixDays);
+    
     
     // Fill in the data from the table
     num_rows = dataset.getRowCount();
@@ -136,6 +184,7 @@ function setup() {
         var checkoutTimes = dataset.getNum(i, tableIdx.times);
         var year = dataset.getNum(i, tableIdx.year);
         var month = dataset.getNum(i, tableIdx.month);
+        var day = dataset.getNum(i, tableIdx.day);
         title = title.toLowerCase();
         title = ' ' + title + ' '
 
@@ -168,7 +217,10 @@ function setup() {
         }
 
         datasetMatrix[getYearIdx(year)][getMonthIdx(month)][langIdx] += checkoutTimes;
+        datasetMatrixDays[getYearIdx(year)][getMonthIdx(month)][getDayIdx(day)][langIdx] += checkoutTimes;
     }
+    console.log("dataset with days");
+    console.log(datasetMatrixDays);
 
     // Control Panel
     buttonRotate = createButton('Auto Rotate');
@@ -216,20 +268,12 @@ function draw() {
             totalTranslateDistance += deltaTime * 5;
         
     } 
-    rotateY(totalRotationAngle);
-    translate(0, totalTranslateDistance, 0);  
-
     // Read which year to start
     var sYear = startYearSlider.value();
     var eYear = endYearSlider.value();
-    // Draw Data
-    for (var y = sYear; y <= eYear; y++) {
-        for (var m = 1; m <= 12; m++) {
-            for(var i = 0; i < langIdxList.len; i++)
-            drawMonthData(y, m, i);
-        }
-    }
-
+    rotateY(totalRotationAngle);
+    translate(0, totalTranslateDistance, 0);  
+    drawDailyData(sYear, eYear);
     drawTimeLine(sYear, eYear);
 }
 
