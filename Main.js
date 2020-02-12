@@ -38,20 +38,20 @@ let tableIdx = {
 let datasetMatrix = [];
 let datasetMatrixDays = [];
 const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const langList = ['Python', 'C/C++', 'Swift', 'C#', 'Javascript', 'Java', 'PHP', 'SQL', 'Kotlin', 'Ruby'];
-const colorList = ['#C68DFF', '#64C1FF', '#FFA024', '#8B6EFF', '#FFF18D', '#FF6F00', '#75FFE4', '#9AFF75', '#6CFFF1', '#E44646']
+const langList = ['Python', 'C/C++', 'Swift', 'Javascript', 'Java', 'PHP', 'SQL', 'Kotlin', 'Ruby'];
+const colorList = ['#C68DFF', '#64C1FF', '#FFA024', '#FFF18D', '#FF6F00', '#75FFE4', '#9AFF75', '#6CFFF1', '#E44646']
+const langSwitch = [true, true, true, true, true, true, true, true, true];
 const langIdxList = {
     'python': 0,
     'ccpp': 1,
     'swift': 2, 
-    'csharp': 3, 
-    'javascript': 4,
-    'java': 5,
-    'php': 6,
-    'sql': 7,
-    'kotlin': 8,
-    'ruby':9,
-    len: 10
+    'javascript': 3,
+    'java': 4,
+    'php': 5,
+    'sql': 6,
+    'kotlin': 7,
+    'ruby':8,
+    len: 9
 }
 const monthStrings = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec."];
 const startYear = 2006
@@ -67,7 +67,7 @@ const translateBound = dh * 12 * (endYear - startYear);
 const initialHeight = dh * 12 * 1.2;
 
 let isAutoRotation = true;
-let isAutoTranslate = true;
+let isAutoTranslate = false;
 let isPerspective = true;
 
 let lastTime = 0;
@@ -77,19 +77,19 @@ let deltaTime = 0;
 let totalTranslateDistance = 0;
 let totalRotationAngle = 0;
 
+// GUI Panel
 let buttonRotate, buttonTranslate;
 let buttonPerspective;
 let yearLabel = "All years";
-let startYearSlider;
-let endYearSlider;
-
-
+let startYearLabel, endYearLabel;
+let startYearValue, endYearValue;
+let startYearSlider, endYearSlider;
+let langCheckboxes = [];
 
 function preload() {
     Gotham = loadFont('data/Gotham-Bold.otf');
     DIN = loadFont('data/DIN.otf');
     dataset = loadTable("data/ProgLangTrendWithDates.csv", 'csv', 'header');
-    
 }
 
 function setup() {
@@ -99,8 +99,6 @@ function setup() {
     cam = createCamera();
     cam.perspective(PI / 3.0, width / height, 0.1, 5000);
     cam.move(0, -initialHeight, 0);
-    console.log(cam);
-
 
     // Initialize dataset matrix table
     /* This table will be like
@@ -169,7 +167,6 @@ function setup() {
         }
     }
     print("Done initializing dataset (days) matrix!");
-    console.log(datasetMatrixDays);
     
     
     // Fill in the data from the table
@@ -205,8 +202,6 @@ function setup() {
             langIdx = langIdxList.swift
         else if (title.includes('ruby'))
             langIdx = langIdxList.ruby;
-        else if (title.includes(' c# '))
-            langIdx = langIdxList.csharp;
         else if (title.includes(' c++ ') || title.includes(' c '))
             langIdx = langIdxList.ccpp;
 
@@ -220,27 +215,9 @@ function setup() {
         datasetMatrixDays[getYearIdx(year)][getMonthIdx(month)][getDayIdx(day)][langIdx] += checkoutTimes;
     }
     console.log("dataset with days");
-    console.log(datasetMatrixDays);
 
     // Control Panel
-    buttonRotate = createButton('Auto Rotate');
-    buttonRotate.mousePressed(toggleAutoRotate);
-    buttonRotate.position(20, 40);
-
-    buttonTranslate = createButton('Auto Move');
-    buttonTranslate.mousePressed(toggleAutoTanslate);
-    buttonTranslate.position(20, 70);
-
-    buttonPerspective = createButton('Perspective');
-    buttonPerspective.mousePressed(togglePerspective);
-    buttonPerspective.position(20, 100);
-
-    startYearSlider = createSlider(startYear, endYear, startYear, 1);
-    startYearSlider.position(20, 130);
-    startYearSlider.style('width', '140px');
-    endYearSlider = createSlider(startYear, endYear, startYear + 5, 1);
-    endYearSlider.position(20, 160);
-    endYearSlider.style('width', '140px');
+    initControlPanel();
 
     cameraTranslation = createVector(0, 0, 0);
     getCameraMatrix();
@@ -252,10 +229,8 @@ function draw() {
     deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
-    background('#161524');
     orbitControl(0.5, 0.5, 0.5);
-
-    lights();
+    
     translate(0, initialHeight, 0);
     moveCamera();
     tiltCamera();
@@ -271,7 +246,11 @@ function draw() {
     // Read which year to start
     var sYear = startYearSlider.value();
     var eYear = endYearSlider.value();
+    startYearValue.html("" + sYear);
+    endYearValue.html("" + eYear);
     rotateY(totalRotationAngle);
+    background('#161524');
+    lights();
     translate(0, totalTranslateDistance, 0);  
     drawDailyData(sYear, eYear);
     drawTimeLine(sYear, eYear);

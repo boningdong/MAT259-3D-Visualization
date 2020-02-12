@@ -17,7 +17,7 @@ WHERE
         OR (LOWER(title) LIKE '%c++%')
         OR (LOWER(title) LIKE '% c %')
         OR (LOWER(title) LIKE '%swift%')
-        OR (LOWER(title) LIKE '%c#%')
+        OR (LOWER(title) LIKE '%c\#%')
         OR (LOWER(title) LIKE '%javascript%')
         OR (LOWER(title) LIKE '%java%')
         OR (LOWER(title) LIKE '%php%')

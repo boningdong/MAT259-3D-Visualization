@@ -20,3 +20,10 @@ function togglePerspective() {
         cam.setPosition(0, 0, 0);
     }
 }
+
+function checkboxChanged() {
+    console.log("Checkbox changed");
+    for(var i = 0; i < langCheckboxes.length; i++) {
+        langSwitch[i] = langCheckboxes[i].checked();
+    }
+}

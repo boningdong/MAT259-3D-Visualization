@@ -1,3 +1,53 @@
+function initControlPanel() {
+    buttonRotate = createButton('Auto Rotate');
+    buttonRotate.mousePressed(toggleAutoRotate);
+    buttonRotate.position(20, 40);
+
+    buttonTranslate = createButton('Auto Move');
+    buttonTranslate.mousePressed(toggleAutoTanslate);
+    buttonTranslate.position(20, 70);
+
+    buttonPerspective = createButton('Perspective');
+    buttonPerspective.mousePressed(togglePerspective);
+    buttonPerspective.position(20, 100);
+
+    let initStartYear = startYear;
+    let initEndYear = startYear + 2;
+    let sliderBlockInitY = 140;
+    let sliderBlockInitX = 20;
+    let sliderBlockDx = 80;
+    let sliderBlockDy = 40;
+    startYearLabel = createP("Start Year: ");
+    startYearLabel.position(sliderBlockInitX, sliderBlockInitY);
+    startYearValue = createP("" + initStartYear);
+    startYearValue.position(sliderBlockInitX + sliderBlockDx, sliderBlockInitY);
+    startYearSlider = createSlider(startYear, endYear, initStartYear, 1);
+    startYearSlider.position(sliderBlockInitX, sliderBlockInitY + sliderBlockDy);
+    startYearSlider.style('width', '120px');
+
+    endYearLabel = createP("End Year: ");
+    endYearLabel.position(sliderBlockInitX, sliderBlockInitY + sliderBlockDy * 2);
+    endYearValue = createP("" + initEndYear);
+    endYearValue.position(sliderBlockInitX + sliderBlockDx, sliderBlockInitY + sliderBlockDy * 2);
+    endYearSlider = createSlider(startYear, endYear, initEndYear, 1);
+    endYearSlider.position(sliderBlockInitX, sliderBlockInitY + sliderBlockDy * 3);
+    endYearSlider.style('width', '120px');
+
+    // Draw checkbox
+    let initCheckboxX = 20;
+    let initCheckboxY = windowHeight - 50;
+    let checkboxDy = -25;
+    let checkbox;
+    for(var i = langIdxList.len - 1; i >= 0; i--) {
+        checkbox = createCheckbox(" " + langList[i], langSwitch[i]);
+        checkbox.position(initCheckboxX, initCheckboxY + checkboxDy * (langIdxList.len - 1 - i));
+        checkbox.style('color', colorList[i]);
+        checkbox.changed(checkboxChanged);
+        langCheckboxes.unshift(checkbox);
+    }
+}
+
+
 function drawMonthData(year, month, langIdx) {
     angleMode(RADIANS);
     var monthCheckoutTimes = datasetMatrix[getYearIdx(year)][getMonthIdx(month)][langIdx];
@@ -43,18 +93,18 @@ function drawDayData(year, month, day, langIdx) {
     var x = Math.cos(angle) * (trackRadius + offset * langIdx);
     var y = Math.sin(angle) * (trackRadius + offset * langIdx);
     var c = colorList[langIdx];
-    var size = dayCheckoutTimes * 2;
+    var size = Math.pow(dayCheckoutTimes, 1.1) * 2;
     push();
     translate(x, -z, y);
-    rotateY(-90)
+    rotateY(-angle);
     stroke(c);
-    strokeWeight(2);
+    strokeWeight(3);
     ambientLight(0);
     c += 'cc';
     fill(c);
     // torus(size, 4, 5, 12);
     circle(0, 0, size)
-    pop();
+    pop();    
 }
 
 function drawDailyData(sYear, eYear) {
@@ -65,8 +115,10 @@ function drawDailyData(sYear, eYear) {
             if (y % 4 == 0 && m == 2)
                 totalDays += 1;
             for (var d = 1; d <= totalDays; d++){
-                for(var i = 0; i < langIdxList.len; i++)
-                    drawDayData(y, m, d, i);
+                for(var i = 0; i < langIdxList.len; i++) {
+                    if (langSwitch[i])
+                        drawDayData(y, m, d, i);
+                }
             }
         }
     }
@@ -149,13 +201,31 @@ function drawTimeLine(sYear, eYear) {
     }
     endShape();
 
-    // Draw year line cylinder
-    // var totalHeight = (getYearIdx(endYear) * 12 + getMonthIdx(12)) * dh;
-    // var cylinderRadius = trackRadius * 0.9;
-    // fill('rgba(100, 90, 210, 0.05)');
-    // noStroke();
-    // push();
-    // translate(0, -totalHeight/2, 0);
-    // cylinder(cylinderRadius, totalHeight, 24, 1, false, false);
-    // pop();
+    // Year label
+    stroke('rgba(100, 90, 210, 0.25)');
+    strokeWeight(3);
+    textAlign(CENTER, CENTER);
+    for (var y = sYear; y <= eYear; y++) {
+        var h = (dh * 12) * getYearIdx(y) + dh * 6;
+        var hb = (dh * 12) * getYearIdx(y);
+        var ht = hb + 12 * dh;
+        var lineLen = trackRadius / 4;
+        push();
+
+        // Draw year seperator lines
+        line(-lineLen/2, -hb, 0, lineLen/2, -hb, 0);
+        line(0, -hb - 2, 0, 0, -hb - 3 * dh, 0);
+        line(0, -ht + 2, 0, 0, -ht + 3 * dh, 0);
+        if (y == eYear)
+            line(-lineLen/2, -ht, 0, lineLen/2, -ht, 0);
+        
+        // Draw year label
+        fill('rgba(150, 120, 255, 0.95)');
+        textFont(Gotham);
+        textSize(yearLabelFontSize);
+        translate(0, -h, 0);
+        text(y, 0, 0);
+        pop();
+    }
+    
 }
