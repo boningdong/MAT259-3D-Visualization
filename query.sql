@@ -1,4 +1,4 @@
-# Math books
+# Coding books
 SELECT 
     deweyClass,
     title,
@@ -17,7 +17,6 @@ WHERE
         OR (LOWER(title) LIKE '%c++%')
         OR (LOWER(title) LIKE '% c %')
         OR (LOWER(title) LIKE '%swift%')
-        OR (LOWER(title) LIKE '%c\#%')
         OR (LOWER(title) LIKE '%javascript%')
         OR (LOWER(title) LIKE '%java%')
         OR (LOWER(title) LIKE '%php%')
@@ -27,3 +26,5 @@ WHERE
         OR (LOWER(title) LIKE '%ruby%'))
 GROUP BY deweyClass , title , years , months, days
 ORDER BY years , months, days ASC
+
+

@@ -174,7 +174,7 @@ function setup() {
     num_cols = dataset.getColumnCount();
     print("Rows " + num_rows + " , Columns: " + num_cols);
     
-    // retrieve data from table
+    // retrieve data from table and classify the data.
     for (var i = 0; i < num_rows; i++) {
         var langIdx = -1;
         var title = dataset.getString(i, tableIdx.title);
@@ -185,7 +185,7 @@ function setup() {
         title = title.toLowerCase();
         title = ' ' + title + ' '
 
-        //['Python', 'C/C++', 'Swift', 'C#', 'Javascript', 'Java', 'PHP', 'SQL', 'Kotlin', 'Ruby'];
+        //['Python', 'C/C++', 'Swift', 'Javascript', 'Java', 'PHP', 'SQL', 'Kotlin', 'Ruby'];
         if (title.includes(' python '))
             langIdx = langIdxList.python;
         else if (title.includes('javascript'))
